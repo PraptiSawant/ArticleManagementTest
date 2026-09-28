@@ -91,63 +91,6 @@ public class ContentsController : ControllerBase
         return Ok();
     }
 
-    [HttpGet("paged")]
-    public async Task<IActionResult> GetPaged([FromQuery] ArticleListQueryDto request)
-    {
-        var query = _context.Articles
-        .Include(a => a.Contents)
-        .ThenInclude(c => c.Author)
-        .AsQueryable();
-
-        if (request.Status.HasValue)
-        {
-            query = query.Where(a => a.Status == request.Status.Value);
-        }
-
-        if (request.SortBy?.ToLower() == "title")
-        {
-            query = query.OrderBy(a =>
-                a.Contents
-                    .Where(c => c.Language == Language.English)
-                    .Select(c => c.Title)
-                    .FirstOrDefault());
-        }
-        else
-        {
-            query = query.OrderByDescending(a => a.CreatedAt);
-        }
-
-        var totalItems = await query.CountAsync();
-
-        var articles = await query
-             .Skip((request.PageNumber - 1) * request.PageSize)
-             .Take(request.PageSize)
-             .ToListAsync();
-
-        var result = articles.Select(a => new ArticleListDto
-        {
-            Id = a.Id,
-
-            Title = a.Contents
-        .Where(c => c.Language == Language.English)
-        .Select(c => c.Title)
-        .FirstOrDefault(),
-
-            Author = a.Contents
-        .Select(c => c.Author.UserName)
-        .FirstOrDefault(),
-
-            Status = a.Status
-        }).ToList();
-
-        return Ok(new
-        {
-            Page = request.PageNumber,
-            PageSize = request.PageSize,
-            TotalItems = totalItems,
-            TotalPages = (int)Math.Ceiling((double)totalItems / request.PageSize),
-            Data = result
-        });
-    }
+ 
 
 }

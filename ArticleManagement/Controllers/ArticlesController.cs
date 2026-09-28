@@ -144,7 +144,7 @@ public class ArticlesController : ControllerBase
             query = query.Where(a => a.Status == request.Status.Value);
         }
 
-        if (request.SortBy?.ToLower() == "title")
+        if (request.SortByTitle == true)
         {
             query = query.OrderBy(a =>
                 a.Contents
