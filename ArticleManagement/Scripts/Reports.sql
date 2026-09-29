@@ -17,7 +17,16 @@ GROUP BY
 -- REPORT 2
 -- Report to show all articles created in past 3 months, by users created in the past 4 months with specified language (+ points for script with variables)
 
-DECLARE @Language VARCHAR(20) = 'English';
+DECLARE @LanguageText VARCHAR(20) = 'English';
+DECLARE @Language INT;
+
+-- Map the string text to enum
+SET @Language = CASE @LanguageText
+    WHEN 'English' THEN 0
+    WHEN 'Spanish' THEN 1
+    WHEN 'French'  THEN 2
+    ELSE -1 
+END;
 
 SELECT DISTINCT
     a.Id AS ArticleId,
