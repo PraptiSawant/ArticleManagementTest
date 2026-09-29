@@ -134,9 +134,9 @@ public class ArticlesController : ControllerBase
     [HttpGet("paged")]
     public async Task<IActionResult> GetPaged([FromQuery] ArticleListQueryDto request)
     {
-        var query = _context.Articles
-        .Include(a => a.Contents)
-        .ThenInclude(c => c.Author)
+        var query = _context.Contents
+        .Include(c => c.Author)
+        .Include(c => c.Article)
         .AsQueryable();
 
         if (request.Status.HasValue)
@@ -146,15 +146,13 @@ public class ArticlesController : ControllerBase
 
         if (request.SortByTitle == true)
         {
-            query = query.OrderBy(a =>
-                a.Contents
-                    .Where(c => c.Language == Language.English)
-                    .Select(c => c.Title)
-                    .FirstOrDefault());
+            query = query
+                .OrderBy(c => c.Language)
+                .ThenBy(c => c.Title);
         }
         else
         {
-            query = query.OrderByDescending(a => a.CreatedAt);
+            query = query.OrderByDescending(c => c.CreatedAt);
         }
 
         var totalItems = await query.CountAsync();
@@ -167,17 +165,10 @@ public class ArticlesController : ControllerBase
         var result = articles.Select(a => new ArticleListDto
         {
             Id = a.Id,
-
-            Title = a.Contents
-        .Where(c => c.Language == Language.English)
-        .Select(c => c.Title)
-        .FirstOrDefault(),
-
-            Author = a.Contents
-        .Select(c => c.Author.UserName)
-        .FirstOrDefault(),
-
-            Status = a.Status
+            ArticleId = a.ArticleId,
+            Title = a.Title,
+            Author = a.Author.UserName,
+            Status = a.Article.Status,
         }).ToList();
 
         return Ok(new
